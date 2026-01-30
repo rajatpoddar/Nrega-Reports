@@ -2,14 +2,53 @@
 <html>
 <head>
     <title>Admin Dashboard</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .action-btn { cursor: pointer; margin: 0 2px; }
+        .table-responsive { max-height: 500px; overflow-y: auto; }
+    </style>
 </head>
 <body class="bg-light">
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>Admin Dashboard</h2>
         <a href="/" class="btn btn-secondary">Back to Menu</a>
     </div>
+
+    <div class="card p-3 mb-4 shadow-sm">
+        <form method="GET" action="/admin" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Filter by Block</label>
+                <select name="block_name" class="form-select">
+                    <option value="">All Blocks</option>
+                    {% for b in all_blocks %}
+                    <option value="{{ b }}" {% if sel_block == b %}selected{% endif %}>{{ b }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Filter by Panchayat</label>
+                <select name="panchayat" class="form-select">
+                    <option value="">All Panchayats</option>
+                    {% for p in all_panchayats %}
+                    <option value="{{ p }}" {% if sel_panchayat == p %}selected{% endif %}>{{ p }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Apply Filter</button>
+            </div>
+            <div class="col-md-2">
+                <a href="/admin" class="btn btn-outline-secondary w-100">Clear</a>
+            </div>
+        </form>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}{% for category, msg in messages %}<div class="alert alert-{{ category }}">{{ msg }}</div>{% endfor %}{% endif %}
+    {% endwith %}
 
     <ul class="nav nav-tabs" id="myTab" role="tablist">
         <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#semi">Semi-Skilled</button></li>
@@ -17,19 +56,24 @@
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#voucher">Delete Vouchers</button></li>
     </ul>
 
-    <div class="tab-content bg-white p-3 border border-top-0">
+    <div class="tab-content bg-white p-3 border border-top-0 shadow-sm">
         
         <div class="tab-pane fade show active" id="semi">
-            <div class="d-flex justify-content-between mb-2">
-                <h5>Semi-Skilled Data</h5>
-                <a href="/export/semi" class="btn btn-sm btn-primary">Download CSV</a>
+            <div class="d-flex justify-content-end mb-2">
+                <a href="/export/semi" class="btn btn-sm btn-success"><i class="fas fa-file-excel"></i> Export CSV</a>
             </div>
-            <div class="table-responsive" style="max-height: 400px; overflow:auto;">
-                <table class="table table-bordered table-sm">
-                    <thead><tr><th>Block</th><th>Panchayat</th><th>Reg No</th><th>Mapped JC</th><th>Muster Roll</th></tr></thead>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover table-sm">
+                    <thead class="table-dark"><tr><th>Actions</th><th>Block</th><th>Panchayat</th><th>Reg No</th><th>Mapped JC</th><th>Muster Roll</th><th>Amount/Status</th></tr></thead>
                     <tbody>
                         {% for r in semi %}
-                        <tr><td>{{ r.block_name }}</td><td>{{ r.panchayat }}</td><td>{{ r.reg_no }}</td><td>{{ r.mapped_jc }}</td><td>{{ r.muster_roll }}</td></tr>
+                        <tr>
+                            <td style="width: 100px;">
+                                <a href="/edit/semi/{{ r.id }}" class="btn btn-sm btn-outline-primary action-btn"><i class="fas fa-edit"></i></a>
+                                <a href="/delete/semi/{{ r.id }}" class="btn btn-sm btn-outline-danger action-btn" onclick="return confirm('Delete this entry?');"><i class="fas fa-trash"></i></a>
+                            </td>
+                            <td>{{ r.block_name }}</td><td>{{ r.panchayat }}</td><td>{{ r.reg_no }}</td><td>{{ r.mapped_jc }}</td><td>{{ r.muster_roll }}</td><td>{{ r.status_jc }}</td>
+                        </tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -37,37 +81,46 @@
         </div>
 
         <div class="tab-pane fade" id="jc">
-            <div class="d-flex justify-content-between mb-2">
-                <h5>Deleted Jobcards</h5>
-                <a href="/export/jc" class="btn btn-sm btn-danger">Download CSV</a>
+            <div class="d-flex justify-content-end mb-2">
+                <a href="/export/jc" class="btn btn-sm btn-success"><i class="fas fa-file-excel"></i> Export CSV</a>
             </div>
-            <table class="table table-bordered">
-                <thead><tr><th>Block</th><th>Panchayat</th><th>Job Card No</th></tr></thead>
+            <table class="table table-bordered table-hover">
+                <thead class="table-dark"><tr><th>Actions</th><th>Block</th><th>Panchayat</th><th>Work Code</th><th>Mason Name</th><th>Job Card No</th><th>Reason</th></tr></thead>
                 <tbody>
                     {% for r in jc %}
-                    <tr><td>{{ r.block_name }}</td><td>{{ r.panchayat }}</td><td>{{ r.job_card_no }}</td></tr>
+                    <tr>
+                        <td style="width: 100px;">
+                            <a href="/edit/jc/{{ r.id }}" class="btn btn-sm btn-outline-primary action-btn"><i class="fas fa-edit"></i></a>
+                            <a href="/delete/jc/{{ r.id }}" class="btn btn-sm btn-outline-danger action-btn" onclick="return confirm('Delete this entry?');"><i class="fas fa-trash"></i></a>
+                        </td>
+                        <td>{{ r.block_name }}</td><td>{{ r.panchayat }}</td><td>{{ r.work_code }}</td> <td>{{ r.mason_name }}</td><td>{{ r.job_card_no }}</td><td>{{ r.reason }}</td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
 
         <div class="tab-pane fade" id="voucher">
-            <div class="d-flex justify-content-between mb-2">
-                <h5>Vouchers to Delete</h5>
-                <a href="/export/voucher" class="btn btn-sm btn-warning">Download CSV</a>
+            <div class="d-flex justify-content-end mb-2">
+                <a href="/export/voucher" class="btn btn-sm btn-success"><i class="fas fa-file-excel"></i> Export CSV</a>
             </div>
             <div class="table-responsive">
-                <table class="table table-bordered table-sm">
-                    <thead><tr><th>Block</th><th>Panchayat</th><th>Scheme</th><th>Bill No</th><th>Amount</th></tr></thead>
+                <table class="table table-bordered table-hover table-sm">
+                    <thead class="table-dark"><tr><th>Actions</th><th>Block</th><th>Panchayat</th><th>Scheme</th><th>Bill No</th><th>Amount</th></tr></thead>
                     <tbody>
                         {% for r in voucher %}
-                        <tr><td>{{ r.block_name }}</td><td>{{ r.panchayat }}</td><td>{{ r.scheme_name }}</td><td>{{ r.bill_no }}</td><td>{{ r.amount }}</td></tr>
+                        <tr>
+                            <td style="width: 100px;">
+                                <a href="/edit/voucher/{{ r.id }}" class="btn btn-sm btn-outline-primary action-btn"><i class="fas fa-edit"></i></a>
+                                <a href="/delete/voucher/{{ r.id }}" class="btn btn-sm btn-outline-danger action-btn" onclick="return confirm('Delete this entry?');"><i class="fas fa-trash"></i></a>
+                            </td>
+                            <td>{{ r.block_name }}</td><td>{{ r.panchayat }}</td><td>{{ r.scheme_name }}</td><td>{{ r.bill_no }}</td><td>{{ r.amount }}</td>
+                        </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
-
     </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

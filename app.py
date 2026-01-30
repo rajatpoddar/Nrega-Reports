@@ -7,10 +7,24 @@ import io
 
 app = Flask(__name__)
 app.secret_key = 'nrega_bot_secret_key' # Secret key session ke liye zaroori hai
-if not os.path.exists('data'):
-    os.makedirs('data')
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data/nrega_data.db'
+# --- YAHAN SE CHANGES HAI (Absolute Path Fix) ---
+
+# 1. Pata lagao ki app.py computer me kahan rakhi hai
+basedir = os.path.abspath(os.path.dirname(__file__))
+
+# 2. Data folder ka pura rasta (path) set karo
+data_dir = os.path.join(basedir, 'data')
+
+# 3. Agar folder nahi hai, to wahin banao
+if not os.path.exists(data_dir):
+    os.makedirs(data_dir)
+
+# 4. Database ko batao ki file kahan banani hai (Absolute Path)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(data_dir, 'nrega_data.db')
+
+# ------------------------------------------------
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -21,6 +35,8 @@ class SemiSkilled(db.Model):
     block_name = db.Column(db.String(100))
     panchayat = db.Column(db.String(100))
     fin_year = db.Column(db.String(20))
+    work_code = db.Column(db.String(100))
+    mason_name = db.Column(db.String(100))
     reg_no = db.Column(db.String(50))
     mapped_jc = db.Column(db.String(50))
     status_jc = db.Column(db.String(50))
@@ -93,6 +109,8 @@ def form_semi():
             block_name=request.form['block_name'],
             panchayat=request.form['panchayat'],
             fin_year=request.form['fin_year'],
+            work_code=request.form['work_code'],
+            mason_name=request.form['mason_name'],
             reg_no=request.form['reg_no'],
             mapped_jc=request.form['mapped_jc'],
             status_jc=request.form['status_jc'],
@@ -116,6 +134,77 @@ def form_semi():
     # Load suggestions and last saved values
     blocks, panchayats, _ = get_suggestions()
     return render_template('form_semi.html', years=get_fin_years(), blocks=blocks, panchayats=panchayats)
+
+# --- DELETE ROUTE ---
+@app.route('/delete/<category>/<int:id>')
+def delete_item(category, id):
+    try:
+        if category == 'semi':
+            item = SemiSkilled.query.get_or_404(id)
+        elif category == 'jc':
+            item = DeletedJobcard.query.get_or_404(id)
+        elif category == 'voucher':
+            item = DeleteVoucher.query.get_or_404(id)
+        
+        db.session.delete(item)
+        db.session.commit()
+        flash('Entry Deleted Successfully!', 'warning')
+    except Exception as e:
+        flash(f'Error deleting: {e}', 'danger')
+    
+    return redirect(url_for('admin'))
+
+# --- EDIT ROUTE ---
+@app.route('/edit/<category>/<int:id>', methods=['GET', 'POST'])
+def edit_item(category, id):
+    # Data fetch karein
+    if category == 'semi':
+        item = SemiSkilled.query.get_or_404(id)
+    elif category == 'jc':
+        item = DeletedJobcard.query.get_or_404(id)
+    elif category == 'voucher':
+        item = DeleteVoucher.query.get_or_404(id)
+
+    if request.method == 'POST':
+        try:
+            # Form se data lekar update karein
+            item.block_name = request.form['block_name']
+            item.panchayat = request.form['panchayat']
+            
+            if category == 'semi':
+                item.fin_year = request.form['fin_year']
+                item.work_code = request.form['work_code']
+                item.mason_name = request.form['mason_name']
+                item.reg_no = request.form['reg_no']
+                item.mapped_jc = request.form['mapped_jc']
+                item.status_jc = request.form['status_jc']
+                item.bank_name = request.form['bank_name']
+                item.ac_no = request.form['ac_no']
+                item.ifsc = request.form['ifsc']
+                item.wagelist = request.form['wagelist']
+                item.status_wl = request.form['status_wl']
+                item.muster_roll = request.form['muster_roll']
+
+            elif category == 'jc':
+                item.job_card_no = request.form['job_card_no']
+                item.reason = request.form['reason']
+
+            elif category == 'voucher':
+                item.village = request.form['village']
+                item.fin_year = request.form['fin_year']
+                item.scheme_name = request.form['scheme_name']
+                item.work_code = request.form['work_code']
+                item.bill_no = request.form['bill_no']
+                item.voucher_year = request.form['voucher_year']
+                item.amount = request.form['amount']
+
+            db.session.commit()
+            flash('Entry Updated Successfully!', 'success')
+            return redirect(url_for('admin'))
+        except Exception as e:
+            flash(f'Error updating: {e}', 'danger')
+
+    return render_template('edit.html', item=item, category=category, years=get_fin_years())
 
 @app.route('/deleted-jobcard', methods=['GET', 'POST'])
 def form_jc():
@@ -167,12 +256,44 @@ def form_voucher():
     blocks, panchayats, villages = get_suggestions()
     return render_template('form_voucher.html', years=get_fin_years(), blocks=blocks, panchayats=panchayats, villages=villages)
 
-@app.route('/admin')
+@app.route('/admin', methods=['GET'])
 def admin():
-    semi_data = SemiSkilled.query.all()
-    jc_data = DeletedJobcard.query.all()
-    voucher_data = DeleteVoucher.query.all()
-    return render_template('admin.html', semi=semi_data, jc=jc_data, voucher=voucher_data)
+    # 1. Filters Get karna (URL se)
+    block_filter = request.args.get('block_name')
+    panchayat_filter = request.args.get('panchayat')
+
+    # 2. Queries Banana
+    query_semi = SemiSkilled.query
+    query_jc = DeletedJobcard.query
+    query_voucher = DeleteVoucher.query
+
+    # 3. Filters Apply karna
+    if block_filter:
+        query_semi = query_semi.filter_by(block_name=block_filter)
+        query_jc = query_jc.filter_by(block_name=block_filter)
+        query_voucher = query_voucher.filter_by(block_name=block_filter)
+    
+    if panchayat_filter:
+        query_semi = query_semi.filter_by(panchayat=panchayat_filter)
+        query_jc = query_jc.filter_by(panchayat=panchayat_filter)
+        query_voucher = query_voucher.filter_by(panchayat=panchayat_filter)
+
+    # 4. Data Fetch karna
+    semi_data = query_semi.all()
+    jc_data = query_jc.all()
+    voucher_data = query_voucher.all()
+
+    # 5. Dropdown ke liye unique list (Suggestions wale function se)
+    blocks, panchayats, _ = get_suggestions()
+
+    return render_template('admin.html', 
+                           semi=semi_data, 
+                           jc=jc_data, 
+                           voucher=voucher_data,
+                           all_blocks=blocks,
+                           all_panchayats=panchayats,
+                           sel_block=block_filter,
+                           sel_panchayat=panchayat_filter)
 
 @app.route('/export/<category>')
 def export_data(category):
@@ -181,7 +302,7 @@ def export_data(category):
     
     if category == 'semi':
         data = SemiSkilled.query.all()
-        output = [{'Sl.no': i+1, 'Block Name': r.block_name, 'Panchayat Name': r.panchayat, 'Financial Year': r.fin_year, 'Registration no': r.reg_no, 'Mapped With concerned JC No': r.mapped_jc, 'Status of JC': r.status_jc, 'Bank Name': r.bank_name, 'A/c No': r.ac_no, 'IFSC Code': r.ifsc, 'Wagelist of concerned Registration': r.wagelist, 'Status of wagelist': r.status_wl, 'Muster Roll No': r.muster_roll} for i, r in enumerate(data)]
+        output = [{'Sl.no': i+1, 'Block Name': r.block_name, 'Panchayat Name': r.panchayat, 'Financial Year': r.fin_year, 'Work Code': r.work_code, 'Mason Name': r.mason_name, 'Registration no': r.reg_no, 'Mapped With concerned JC No': r.mapped_jc, 'Status of JC': r.status_jc, 'Bank Name': r.bank_name, 'A/c No': r.ac_no, 'IFSC Code': r.ifsc, 'Wagelist of concerned Registration': r.wagelist, 'Status of wagelist': r.status_wl, 'Muster Roll No': r.muster_roll} for i, r in enumerate(data)]
         filename = "Semi_Skilled_Data.csv"
     elif category == 'jc':
         data = DeletedJobcard.query.all()

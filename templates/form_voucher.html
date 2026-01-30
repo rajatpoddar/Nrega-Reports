@@ -9,9 +9,7 @@
 <div class="container mt-3 pb-5">
     <a href="/" class="btn btn-secondary mb-3">&larr; Back</a>
     <div class="card shadow">
-        <div class="card-header bg-warning">
-            <h5 class="mb-0">Delete Bill / Voucher</h5>
-        </div>
+        <div class="card-header bg-warning"><h5 class="mb-0">Delete Bill / Voucher</h5></div>
         <div class="card-body">
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}{% for category, msg in messages %}<div class="alert alert-{{ category }}">{{ msg }}</div>{% endfor %}{% endif %}
@@ -19,31 +17,47 @@
             
             <form method="POST">
                 <div class="row g-3">
-                    <div class="col-6"><label>Block Name</label><input type="text" name="block_name" class="form-control" required></div>
-                    <div class="col-6"><label>Panchayat</label><input type="text" name="panchayat" class="form-control" required></div>
-                    <div class="col-12"><label>Village</label><input type="text" name="village" class="form-control" required></div>
+                    <div class="col-6">
+                        <label>Block Name</label>
+                        <input type="text" name="block_name" class="form-control" list="blocks_list" 
+                               value="{{ session.get('last_block', '') }}" required autocomplete="off">
+                        <datalist id="blocks_list">
+                            {% for b in blocks %}<option value="{{ b }}">{% endfor %}
+                        </datalist>
+                    </div>
+                    <div class="col-6">
+                        <label>Panchayat</label>
+                        <input type="text" name="panchayat" class="form-control" list="panchayats_list" 
+                               value="{{ session.get('last_panchayat', '') }}" required autocomplete="off">
+                        <datalist id="panchayats_list">
+                            {% for p in panchayats %}<option value="{{ p }}">{% endfor %}
+                        </datalist>
+                    </div>
+                    <div class="col-12">
+                        <label>Village</label>
+                        <input type="text" name="village" class="form-control" list="villages_list"
+                               value="{{ session.get('last_village', '') }}" required autocomplete="off">
+                        <datalist id="villages_list">
+                            {% for v in villages %}<option value="{{ v }}">{% endfor %}
+                        </datalist>
+                    </div>
 
                     <div class="col-12">
                         <label>Financial Year</label>
                         <select name="fin_year" class="form-select" required>
                             <option value="">Select Year</option>
-                            {% for y in years %}
-                            <option value="{{ y }}">{{ y }}</option>
-                            {% endfor %}
+                            {% for y in years %}<option value="{{ y }}">{{ y }}</option>{% endfor %}
                         </select>
                     </div>
 
                     <div class="col-12"><label>Scheme Name</label><textarea name="scheme_name" class="form-control" rows="2"></textarea></div>
                     <div class="col-6"><label>Work Code</label><input type="text" name="work_code" class="form-control"></div>
                     <div class="col-6"><label>Bill No</label><input type="text" name="bill_no" class="form-control"></div>
-                    
                     <div class="col-6">
                         <label>Voucher Entry Year</label>
                         <select name="voucher_year" class="form-select">
                              <option value="">Select Year</option>
-                            {% for y in years %}
-                            <option value="{{ y }}">{{ y }}</option>
-                            {% endfor %}
+                            {% for y in years %}<option value="{{ y }}">{{ y }}</option>{% endfor %}
                         </select>
                     </div>
                     <div class="col-6"><label>Amount</label><input type="number" step="0.01" name="amount" class="form-control"></div>

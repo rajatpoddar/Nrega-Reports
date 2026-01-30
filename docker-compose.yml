@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  nrega-app:
+    container_name: nrega_bot_app
+    build: .
+    restart: always
+    ports:
+      - "5233:5233"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - FLASK_ENV=production

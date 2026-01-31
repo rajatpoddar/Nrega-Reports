@@ -302,16 +302,32 @@ def export_data(category):
     
     if category == 'semi':
         data = SemiSkilled.query.all()
-        output = [{'Sl.no': i+1, 'Block Name': r.block_name, 'Panchayat Name': r.panchayat, 'Financial Year': r.fin_year, 'Work Code': r.work_code, 'Mason Name': r.mason_name, 'Registration no': r.reg_no, 'Mapped With concerned JC No': r.mapped_jc, 'Status of JC': r.status_jc, 'Bank Name': r.bank_name, 'A/c No': r.ac_no, 'IFSC Code': r.ifsc, 'Wagelist of concerned Registration': r.wagelist, 'Status of wagelist': r.status_wl, 'Muster Roll No': r.muster_roll} for i, r in enumerate(data)]
-        filename = "Semi_Skilled_Data.csv"
+        # Clean Professional Headers
+        output = [{
+            'Sl No': i+1, 'Block': r.block_name, 'Panchayat': r.panchayat, 
+            'Fin Year': r.fin_year, 'Work Code': r.work_code, 'Mason Name': r.mason_name, 
+            'Reg No': r.reg_no, 'Mapped JC': r.mapped_jc, 'JC Status': r.status_jc, 
+            'Bank Name': r.bank_name, 'A/c No': r.ac_no, 'IFSC': r.ifsc, 
+            'Wagelist': r.wagelist, 'Wagelist Status': r.status_wl, 'Muster Roll': r.muster_roll
+        } for i, r in enumerate(data)]
+        filename = f"Semi_Skilled_Report_{datetime.now().strftime('%Y%m%d')}.csv"
+        
     elif category == 'jc':
         data = DeletedJobcard.query.all()
-        output = [{'Block': r.block_name, 'PANCHAYAT': r.panchayat, 'JOB CARD NO': r.job_card_no} for r in data]
-        filename = "Deleted_Jobcards.csv"
+        output = [{
+            'Sl No': i+1, 'Block': r.block_name, 'Panchayat': r.panchayat, 
+            'Job Card No': r.job_card_no, 'Reason': r.reason
+        } for i, r in enumerate(data)]
+        filename = f"Deleted_Jobcards_{datetime.now().strftime('%Y%m%d')}.csv"
+        
     elif category == 'voucher':
         data = DeleteVoucher.query.all()
-        output = [{'Block': r.block_name, 'PANCHAYAT': r.panchayat, 'VILLAGE': r.village, 'FINANCIAL YEAR': r.fin_year, 'SCHEME NAME': r.scheme_name, 'WORK CODE': r.work_code, 'BILL NO.': r.bill_no, 'FY (VOUCHER ENTRY YEAR)': r.voucher_year, 'AMOUNT': r.amount} for r in data]
-        filename = "Delete_Voucher_Data.csv"
+        output = [{
+            'Sl No': i+1, 'Block': r.block_name, 'Panchayat': r.panchayat, 'Village': r.village,
+            'Fin Year': r.fin_year, 'Scheme Name': r.scheme_name, 'Work Code': r.work_code, 
+            'Bill No': r.bill_no, 'Voucher Year': r.voucher_year, 'Amount': r.amount
+        } for i, r in enumerate(data)]
+        filename = f"Delete_Voucher_Request_{datetime.now().strftime('%Y%m%d')}.csv"
 
     df = pd.DataFrame(output)
     buffer = io.BytesIO()

@@ -1,0 +1,31 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+env/
+.env
+
+# Data & Database (Ye volume mount se aayega, image me nahi hona chahiye)
+data/
+*.db
+*.sqlite3
+
+# Docker files
+docker-compose.yml
+Dockerfile
+.dockerignore
+
+# System & Misc
+.DS_Store
+Thumbs.db
+*.png
+*.jpg
+*.jpeg
+README.md
+update.sh

@@ -1,87 +1,98 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Edit Entry</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>Edit Entry | NREGA Reports</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style> body { background-color: #f0f2f5; } </style>
 </head>
-<body class="bg-light">
-<div class="container mt-4 mb-5">
-    <a href="/admin" class="btn btn-secondary mb-3">&larr; Cancel & Back</a>
-    
-    <div class="card shadow">
-        <div class="card-header bg-primary text-white">
-            <h4>Edit Entry ({{ category|upper }})</h4>
-        </div>
-        <div class="card-body">
-            <form method="POST">
-                
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label">Block Name</label>
-                        <input type="text" name="block_name" class="form-control" value="{{ item.block_name }}" required>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Panchayat</label>
-                        <input type="text" name="panchayat" class="form-control" value="{{ item.panchayat }}" required>
-                    </div>
+<body>
 
-                    {% if category == 'semi' %}
-                        <div class="col-md-12">
-                            <label>Financial Year</label>
-                            <select name="fin_year" class="form-select">
-                                {% for y in years %}
-                                <option value="{{ y }}" {% if item.fin_year == y %}selected{% endif %}>{{ y }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-12">
-                            <label>Work Code</label>
-                            <input type="text" name="work_code" class="form-control" value="{{ item.work_code }}">
-                        </div>
-                        <div class="col-md-12">
-                            <label>Mason Name</label>
-                            <input type="text" name="mason_name" class="form-control" value="{{ item.mason_name }}">
-                        </div>
-                        <div class="col-md-6"><label>Reg No</label><input type="text" name="reg_no" class="form-control" value="{{ item.reg_no }}"></div>
-                        <div class="col-md-6"><label>Mapped JC</label><input type="text" name="mapped_jc" class="form-control" value="{{ item.mapped_jc }}"></div>
-                        <div class="col-md-6"><label>Status JC</label><input type="text" name="status_jc" class="form-control" value="{{ item.status_jc }}"></div>
-                        <div class="col-md-6"><label>Bank</label><input type="text" name="bank_name" class="form-control" value="{{ item.bank_name }}"></div>
-                        <div class="col-md-6"><label>IFSC</label><input type="text" name="ifsc" class="form-control" value="{{ item.ifsc }}"></div>
-                        <div class="col-md-6"><label>A/c No</label><input type="text" name="ac_no" class="form-control" value="{{ item.ac_no }}"></div>
-                        <div class="col-md-12"><label>Wagelist</label><input type="text" name="wagelist" class="form-control" value="{{ item.wagelist }}"></div>
-                        <div class="col-md-6"><label>Status WL</label><input type="text" name="status_wl" class="form-control" value="{{ item.status_wl }}"></div>
-                        <div class="col-md-6"><label>Muster Roll</label><input type="text" name="muster_roll" class="form-control" value="{{ item.muster_roll }}"></div>
+<nav class="navbar navbar-light bg-white shadow-sm mb-4">
+    <div class="container">
+        <a class="navbar-brand fw-bold text-primary" href="/">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" height="30" class="me-2" onerror="this.style.display='none'">
+            NREGA Reports
+        </a>
+        <a href="/admin" class="btn btn-sm btn-outline-secondary">Cancel</a>
+    </div>
+</nav>
 
-                    {% elif category == 'jc' %}
-                        <div class="col-md-12"><label>Job Card No</label><input type="text" name="job_card_no" class="form-control" value="{{ item.job_card_no }}"></div>
-                        <div class="col-md-12"><label>Reason</label><input type="text" name="reason" class="form-control" value="{{ item.reason }}"></div>
-
-                    {% elif category == 'voucher' %}
-                        <div class="col-md-12"><label>Village</label><input type="text" name="village" class="form-control" value="{{ item.village }}"></div>
-                        <div class="col-md-6">
-                            <label>Fin Year</label>
-                            <select name="fin_year" class="form-select">
-                                {% for y in years %}<option value="{{ y }}" {% if item.fin_year == y %}selected{% endif %}>{{ y }}</option>{% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-12"><label>Scheme</label><textarea name="scheme_name" class="form-control">{{ item.scheme_name }}</textarea></div>
-                        <div class="col-md-6"><label>Work Code</label><input type="text" name="work_code" class="form-control" value="{{ item.work_code }}"></div>
-                        <div class="col-md-6"><label>Bill No</label><input type="text" name="bill_no" class="form-control" value="{{ item.bill_no }}"></div>
-                        <div class="col-md-6">
-                            <label>Voucher Year</label>
-                            <select name="voucher_year" class="form-select">
-                                {% for y in years %}<option value="{{ y }}" {% if item.voucher_year == y %}selected{% endif %}>{{ y }}</option>{% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-6"><label>Amount</label><input type="text" name="amount" class="form-control" value="{{ item.amount }}"></div>
-                    {% endif %}
-
-                    <div class="col-12 mt-4">
-                        <button type="submit" class="btn btn-success w-100 btn-lg">Update Entry</button>
-                    </div>
+<div class="container pb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-dark text-white py-3">
+                    <h5 class="mb-0 fw-normal">Edit Entry ({{ category|upper }})</h5>
                 </div>
-            </form>
+                <div class="card-body p-4">
+                    <form method="POST">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Block Name</label>
+                                <input type="text" name="block_name" class="form-control" value="{{ item.block_name }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Panchayat</label>
+                                <input type="text" name="panchayat" class="form-control" value="{{ item.panchayat }}" required>
+                            </div>
+                            
+                            <div class="col-12"><hr class="my-2"></div>
+
+                            {% if category == 'semi' %}
+                                <div class="col-md-12">
+                                    <label class="form-label">Financial Year</label>
+                                    <select name="fin_year" class="form-select">
+                                        {% for y in years %}
+                                        <option value="{{ y }}" {% if item.fin_year == y %}selected{% endif %}>{{ y }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-12"><label class="form-label">Work Code</label><input type="text" name="work_code" class="form-control" value="{{ item.work_code }}"></div>
+                                <div class="col-md-12"><label class="form-label">Mason Name</label><input type="text" name="mason_name" class="form-control" value="{{ item.mason_name }}"></div>
+                                <div class="col-md-6"><label class="form-label">Reg No</label><input type="text" name="reg_no" class="form-control" value="{{ item.reg_no }}"></div>
+                                <div class="col-md-6"><label class="form-label">Mapped JC</label><input type="text" name="mapped_jc" class="form-control" value="{{ item.mapped_jc }}"></div>
+                                <div class="col-md-6"><label class="form-label">Status JC</label><input type="text" name="status_jc" class="form-control" value="{{ item.status_jc }}"></div>
+                                <div class="col-md-6"><label class="form-label">Bank</label><input type="text" name="bank_name" class="form-control" value="{{ item.bank_name }}"></div>
+                                <div class="col-md-6"><label class="form-label">IFSC</label><input type="text" name="ifsc" class="form-control" value="{{ item.ifsc }}"></div>
+                                <div class="col-md-6"><label class="form-label">A/c No</label><input type="text" name="ac_no" class="form-control" value="{{ item.ac_no }}"></div>
+                                <div class="col-md-12"><label class="form-label">Wagelist</label><input type="text" name="wagelist" class="form-control" value="{{ item.wagelist }}"></div>
+                                <div class="col-md-6"><label class="form-label">Status WL</label><input type="text" name="status_wl" class="form-control" value="{{ item.status_wl }}"></div>
+                                <div class="col-md-6"><label class="form-label">Muster Roll</label><input type="text" name="muster_roll" class="form-control" value="{{ item.muster_roll }}"></div>
+
+                            {% elif category == 'jc' %}
+                                <div class="col-md-12"><label class="form-label">Job Card No</label><input type="text" name="job_card_no" class="form-control" value="{{ item.job_card_no }}"></div>
+                                <div class="col-md-12"><label class="form-label">Reason</label><input type="text" name="reason" class="form-control" value="{{ item.reason }}"></div>
+
+                            {% elif category == 'voucher' %}
+                                <div class="col-md-12"><label class="form-label">Village</label><input type="text" name="village" class="form-control" value="{{ item.village }}"></div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Fin Year</label>
+                                    <select name="fin_year" class="form-select">
+                                        {% for y in years %}<option value="{{ y }}" {% if item.fin_year == y %}selected{% endif %}>{{ y }}</option>{% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-12"><label class="form-label">Scheme</label><textarea name="scheme_name" class="form-control">{{ item.scheme_name }}</textarea></div>
+                                <div class="col-md-6"><label class="form-label">Work Code</label><input type="text" name="work_code" class="form-control" value="{{ item.work_code }}"></div>
+                                <div class="col-md-6"><label class="form-label">Bill No</label><input type="text" name="bill_no" class="form-control" value="{{ item.bill_no }}"></div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Voucher Year</label>
+                                    <select name="voucher_year" class="form-select">
+                                        {% for y in years %}<option value="{{ y }}" {% if item.voucher_year == y %}selected{% endif %}>{{ y }}</option>{% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6"><label class="form-label">Amount</label><input type="text" name="amount" class="form-control" value="{{ item.amount }}"></div>
+                            {% endif %}
+
+                            <div class="col-12 mt-4">
+                                <button type="submit" class="btn btn-success w-100 btn-lg shadow-sm">Save Changes</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>

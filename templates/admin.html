@@ -1,78 +1,133 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Admin Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <meta name="description" content="NREGA Admin Dashboard - Poddar Solutions">
+    <meta name="author" content="Rajat Poddar">
+    <title>Admin Dashboard | NREGA Reports</title>
+    
     <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <style>
-        .action-btn { cursor: pointer; margin: 0 2px; }
-        .table-responsive { max-height: 500px; overflow-y: auto; }
+        :root { --primary-color: #0d6efd; --secondary-bg: #f8f9fa; }
+        body { background-color: var(--secondary-bg); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        /* Navbar */
+        .navbar { background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .navbar-brand img { height: 35px; margin-right: 10px; }
+        
+        /* Table Styling */
+        .table-responsive { 
+            max-height: 65vh; 
+            overflow-y: auto; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            background: white;
+        }
+        thead th { 
+            position: sticky; top: 0; z-index: 1; 
+            background-color: #e9ecef !important; 
+            color: #495057;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+        .table td { white-space: nowrap; vertical-align: middle; font-size: 0.9rem; }
+        .action-btn { transition: transform 0.2s; }
+        .action-btn:hover { transform: scale(1.1); }
+
+        /* Mobile tweaks */
+        @media (max-width: 768px) {
+            .filter-card { padding: 15px !important; }
+            h2 { font-size: 1.5rem; }
+        }
     </style>
 </head>
-<body class="bg-light">
-<div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Admin Dashboard</h2>
-        <a href="/" class="btn btn-secondary">Back to Menu</a>
-    </div>
+<body>
 
-    <div class="card p-3 mb-4 shadow-sm">
-        <form method="GET" action="/admin" class="row g-3 align-items-end">
-            <div class="col-md-3">
-                <label class="form-label fw-bold">Filter by Block</label>
-                <select name="block_name" class="form-select">
+<nav class="navbar navbar-expand-lg navbar-light fixed-top">
+    <div class="container-fluid">
+        <a class="navbar-brand d-flex align-items-center" href="/">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" onerror="this.style.display='none'">
+            <span class="fw-bold text-primary">NREGA Admin</span>
+        </a>
+        <a href="/" class="btn btn-sm btn-outline-secondary"><i class="fas fa-home"></i> Menu</a>
+    </div>
+</nav>
+
+<div class="container-fluid mt-5 pt-4">
+    <div class="card p-3 mb-4 mt-3 shadow-sm border-0 filter-card">
+        <form method="GET" action="/admin" class="row g-2 align-items-end">
+            <div class="col-md-4 col-12">
+                <label class="form-label small text-muted fw-bold text-uppercase">Block</label>
+                <select name="block_name" class="form-select form-select-sm">
                     <option value="">All Blocks</option>
                     {% for b in all_blocks %}
                     <option value="{{ b }}" {% if sel_block == b %}selected{% endif %}>{{ b }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-3">
-                <label class="form-label fw-bold">Filter by Panchayat</label>
-                <select name="panchayat" class="form-select">
+            <div class="col-md-4 col-12">
+                <label class="form-label small text-muted fw-bold text-uppercase">Panchayat</label>
+                <select name="panchayat" class="form-select form-select-sm">
                     <option value="">All Panchayats</option>
                     {% for p in all_panchayats %}
                     <option value="{{ p }}" {% if sel_panchayat == p %}selected{% endif %}>{{ p }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-primary w-100">Apply Filter</button>
+            <div class="col-md-2 col-6">
+                <button type="submit" class="btn btn-sm btn-primary w-100"><i class="fas fa-filter"></i> Filter</button>
             </div>
-            <div class="col-md-2">
-                <a href="/admin" class="btn btn-outline-secondary w-100">Clear</a>
+            <div class="col-md-2 col-6">
+                <a href="/admin" class="btn btn-sm btn-light w-100 border">Clear</a>
             </div>
         </form>
     </div>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}{% for category, msg in messages %}<div class="alert alert-{{ category }}">{{ msg }}</div>{% endfor %}{% endif %}
+        {% if messages %}{% for category, msg in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show py-2" role="alert">
+            {{ msg }} <button type="button" class="btn-close pb-2" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}{% endif %}
     {% endwith %}
 
-    <ul class="nav nav-tabs" id="myTab" role="tablist">
-        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#semi">Semi-Skilled</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#jc">Deleted Jobcards</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#voucher">Delete Vouchers</button></li>
+    <ul class="nav nav-tabs border-bottom-0" id="myTab" role="tablist">
+        <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="tab" data-bs-target="#semi">Semi-Skilled</button></li>
+        <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#jc">Deleted JC</button></li>
+        <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#voucher">Delete Voucher</button></li>
     </ul>
 
-    <div class="tab-content bg-white p-3 border border-top-0 shadow-sm">
+    <div class="tab-content bg-white p-0 shadow-sm rounded-bottom">
         
         <div class="tab-pane fade show active" id="semi">
-            <div class="d-flex justify-content-end mb-2">
-                <a href="/export/semi" class="btn btn-sm btn-success"><i class="fas fa-file-excel"></i> Export CSV</a>
+            <div class="p-2 d-flex justify-content-between bg-light border-bottom align-items-center">
+                <span class="small text-muted ms-2">Total: {{ semi|length }} entries</span>
+                <a href="/export/semi" class="btn btn-sm btn-success shadow-sm"><i class="fas fa-file-csv"></i> Export CSV</a>
             </div>
             <div class="table-responsive">
-                <table class="table table-bordered table-hover table-sm">
-                    <thead class="table-dark"><tr><th>Actions</th><th>Block</th><th>Panchayat</th><th>Reg No</th><th>Mapped JC</th><th>Muster Roll</th><th>Amount/Status</th></tr></thead>
+                <table class="table table-hover mb-0">
+                    <thead><tr>
+                        <th>Action</th><th>Block</th><th>Panchayat</th><th>Reg No</th><th>Mason Name</th><th>Work Code</th><th>Status</th>
+                    </tr></thead>
                     <tbody>
                         {% for r in semi %}
                         <tr>
-                            <td style="width: 100px;">
-                                <a href="/edit/semi/{{ r.id }}" class="btn btn-sm btn-outline-primary action-btn"><i class="fas fa-edit"></i></a>
-                                <a href="/delete/semi/{{ r.id }}" class="btn btn-sm btn-outline-danger action-btn" onclick="return confirm('Delete this entry?');"><i class="fas fa-trash"></i></a>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="/edit/semi/{{ r.id }}" class="btn btn-outline-primary action-btn"><i class="fas fa-pen"></i></a>
+                                    <a href="/delete/semi/{{ r.id }}" class="btn btn-outline-danger action-btn" onclick="return confirm('Delete this entry?');"><i class="fas fa-trash"></i></a>
+                                </div>
                             </td>
-                            <td>{{ r.block_name }}</td><td>{{ r.panchayat }}</td><td>{{ r.reg_no }}</td><td>{{ r.mapped_jc }}</td><td>{{ r.muster_roll }}</td><td>{{ r.status_jc }}</td>
+                            <td>{{ r.block_name }}</td><td>{{ r.panchayat }}</td><td>{{ r.reg_no }}</td>
+                            <td>{{ r.mason_name }}</td>
+                            <td>{{ r.work_code }}</td>
+                            <td><span class="badge bg-{{ 'success' if r.status_jc == 'Active' else 'secondary' }}">{{ r.status_jc }}</span></td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -81,40 +136,54 @@
         </div>
 
         <div class="tab-pane fade" id="jc">
-            <div class="d-flex justify-content-end mb-2">
-                <a href="/export/jc" class="btn btn-sm btn-success"><i class="fas fa-file-excel"></i> Export CSV</a>
+            <div class="p-2 d-flex justify-content-between bg-light border-bottom align-items-center">
+                <span class="small text-muted ms-2">Total: {{ jc|length }} entries</span>
+                <a href="/export/jc" class="btn btn-sm btn-success shadow-sm"><i class="fas fa-file-csv"></i> Export CSV</a>
             </div>
-            <table class="table table-bordered table-hover">
-                <thead class="table-dark"><tr><th>Actions</th><th>Block</th><th>Panchayat</th><th>Work Code</th><th>Mason Name</th><th>Job Card No</th><th>Reason</th></tr></thead>
-                <tbody>
-                    {% for r in jc %}
-                    <tr>
-                        <td style="width: 100px;">
-                            <a href="/edit/jc/{{ r.id }}" class="btn btn-sm btn-outline-primary action-btn"><i class="fas fa-edit"></i></a>
-                            <a href="/delete/jc/{{ r.id }}" class="btn btn-sm btn-outline-danger action-btn" onclick="return confirm('Delete this entry?');"><i class="fas fa-trash"></i></a>
-                        </td>
-                        <td>{{ r.block_name }}</td><td>{{ r.panchayat }}</td><td>{{ r.work_code }}</td> <td>{{ r.mason_name }}</td><td>{{ r.job_card_no }}</td><td>{{ r.reason }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead><tr>
+                        <th>Action</th><th>Block</th><th>Panchayat</th><th>Job Card No</th><th>Reason</th>
+                    </tr></thead>
+                    <tbody>
+                        {% for r in jc %}
+                        <tr>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="/edit/jc/{{ r.id }}" class="btn btn-outline-primary action-btn"><i class="fas fa-pen"></i></a>
+                                    <a href="/delete/jc/{{ r.id }}" class="btn btn-outline-danger action-btn" onclick="return confirm('Delete this entry?');"><i class="fas fa-trash"></i></a>
+                                </div>
+                            </td>
+                            <td>{{ r.block_name }}</td><td>{{ r.panchayat }}</td><td class="fw-bold text-dark">{{ r.job_card_no }}</td><td>{{ r.reason }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <div class="tab-pane fade" id="voucher">
-            <div class="d-flex justify-content-end mb-2">
-                <a href="/export/voucher" class="btn btn-sm btn-success"><i class="fas fa-file-excel"></i> Export CSV</a>
+            <div class="p-2 d-flex justify-content-between bg-light border-bottom align-items-center">
+                <span class="small text-muted ms-2">Total: {{ voucher|length }} entries</span>
+                <a href="/export/voucher" class="btn btn-sm btn-success shadow-sm"><i class="fas fa-file-csv"></i> Export CSV</a>
             </div>
             <div class="table-responsive">
-                <table class="table table-bordered table-hover table-sm">
-                    <thead class="table-dark"><tr><th>Actions</th><th>Block</th><th>Panchayat</th><th>Scheme</th><th>Bill No</th><th>Amount</th></tr></thead>
+                <table class="table table-hover mb-0">
+                    <thead><tr>
+                        <th>Action</th><th>Block</th><th>Panchayat</th><th>Scheme</th><th>Bill No</th><th>Amount</th>
+                    </tr></thead>
                     <tbody>
                         {% for r in voucher %}
                         <tr>
-                            <td style="width: 100px;">
-                                <a href="/edit/voucher/{{ r.id }}" class="btn btn-sm btn-outline-primary action-btn"><i class="fas fa-edit"></i></a>
-                                <a href="/delete/voucher/{{ r.id }}" class="btn btn-sm btn-outline-danger action-btn" onclick="return confirm('Delete this entry?');"><i class="fas fa-trash"></i></a>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="/edit/voucher/{{ r.id }}" class="btn btn-outline-primary action-btn"><i class="fas fa-pen"></i></a>
+                                    <a href="/delete/voucher/{{ r.id }}" class="btn btn-outline-danger action-btn" onclick="return confirm('Delete this entry?');"><i class="fas fa-trash"></i></a>
+                                </div>
                             </td>
-                            <td>{{ r.block_name }}</td><td>{{ r.panchayat }}</td><td>{{ r.scheme_name }}</td><td>{{ r.bill_no }}</td><td>{{ r.amount }}</td>
+                            <td>{{ r.block_name }}</td><td>{{ r.panchayat }}</td>
+                            <td title="{{ r.scheme_name }}">{{ r.scheme_name[:30] }}...</td>
+                            <td>{{ r.bill_no }}</td><td class="fw-bold">₹{{ r.amount }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -122,7 +191,13 @@
             </div>
         </div>
     </div>
+
+    <footer class="text-center mt-4 mb-4 text-muted border-top pt-3">
+        <small class="d-block">&copy; 2025 NREGA Reports Tool</small>
+        <small style="font-size: 0.75rem;">Developed by <span class="fw-bold text-dark">Poddar Solutions</span></small>
+    </footer>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
